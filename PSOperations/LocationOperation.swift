@@ -36,6 +36,7 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
             addCondition(Capability(Location()))
         #endif
         addCondition(MutuallyExclusive<CLLocationManager>())
+      
         addObserver(BlockObserver(cancelHandler: { [weak self] _ in
             dispatch_async(dispatch_get_main_queue()) {
                 self?.stopLocationUpdates()
@@ -52,22 +53,15 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
             let manager = CLLocationManager()
             manager.desiredAccuracy = self.accuracy
             manager.delegate = self
-            
-            if #available(iOS 9.0, *) {
-                manager.requestLocation()
-            } else {
-                #if !os(tvOS) && !os(watchOS)
-                    manager.startUpdatingLocation()
-                #endif
-            }
-            
+          
+            manager.requestLocation()
+          
             self.manager = manager
         }
     }
     
     private func stopLocationUpdates() {
         manager?.stopUpdatingLocation()
-        manager = nil
     }
     
     // MARK: CLLocationManagerDelegate
@@ -84,6 +78,22 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
         stopLocationUpdates()
         finishWithError(error)
     }
+  
+  public func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+    
+    switch CLLocationManager.authorizationStatus(){
+          case .Denied:
+            print("Denied")
+          case .NotDetermined:
+            print("NotDetermined")
+          case .Restricted:
+            print("Restricted")
+          default:
+            print("Authorized")
+            manager.requestLocation()
+        }
+  }
+  
 }
 
 #endif
