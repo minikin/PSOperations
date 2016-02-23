@@ -41,6 +41,7 @@ public struct LocationCondition: OperationCondition {
     }
     
     public func evaluateForOperation(operation: Operation, completion: OperationConditionResult -> Void) {
+      
         let enabled = CLLocationManager.locationServicesEnabled()
         let actual = CLLocationManager.authorizationStatus()
         
@@ -58,7 +59,7 @@ public struct LocationCondition: OperationCondition {
             permission -> condition satisfied.
             */
             break
-            
+          
         default:
             /*
             Anything else is an error. Maybe location services are disabled,
@@ -89,6 +90,7 @@ public struct LocationCondition: OperationCondition {
  if permission has not already been granted.
  */
 class LocationPermissionOperation: Operation {
+  
     let usage: LocationCondition.Usage
     var manager: CLLocationManager?
     
@@ -114,24 +116,27 @@ class LocationPermissionOperation: Operation {
                 dispatch_async(dispatch_get_main_queue()) {
                     self.requestPermission()
                 }
-                
+        
             default:
                 finish()
             }
         #else
             switch (CLLocationManager.authorizationStatus(), usage) {
+              
             case (.NotDetermined, _), (.AuthorizedWhenInUse, .Always):
                 dispatch_async(dispatch_get_main_queue()) {
                     self.requestPermission()
                 }
-                
+            
             default:
                 finish()
             }
+          
         #endif
     }
     
     private func requestPermission() {
+      
         manager = CLLocationManager()
         manager?.delegate = self
         
@@ -139,12 +144,14 @@ class LocationPermissionOperation: Operation {
         
         #if os(tvOS)
             switch usage {
+              
             case .WhenInUse:
                 key = "NSLocationWhenInUseUsageDescription"
                 manager?.requestWhenInUseAuthorization()
             }
         #else
             switch usage {
+              
             case .WhenInUse:
                 key = "NSLocationWhenInUseUsageDescription"
                 manager?.requestWhenInUseAuthorization()
@@ -163,7 +170,7 @@ class LocationPermissionOperation: Operation {
 
 extension LocationPermissionOperation: CLLocationManagerDelegate {
     @objc func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        if manager == self.manager && executing && status != .NotDetermined {
+        if manager == self.manager && executing && status != .NotDetermined || status != .Denied {
             finish()
         }
     }

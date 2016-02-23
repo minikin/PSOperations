@@ -27,14 +27,18 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
     // MARK: Initialization
     
     public init(accuracy: CLLocationAccuracy, locationHandler: CLLocation -> Void) {
+      
         self.accuracy = accuracy
         self.handler = locationHandler
+      
         super.init()
+      
         #if !os(tvOS)
             addCondition(Capability(Location.WhenInUse))
         #else
             addCondition(Capability(Location()))
         #endif
+      
         addCondition(MutuallyExclusive<CLLocationManager>())
       
         addObserver(BlockObserver(cancelHandler: { [weak self] _ in
@@ -62,6 +66,7 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
     
     private func stopLocationUpdates() {
         manager?.stopUpdatingLocation()
+        manager = nil
     }
     
     // MARK: CLLocationManagerDelegate
@@ -78,21 +83,7 @@ public class LocationOperation: Operation, CLLocationManagerDelegate {
         stopLocationUpdates()
         finishWithError(error)
     }
-  
-  public func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-    
-    switch CLLocationManager.authorizationStatus(){
-          case .Denied:
-            print("Denied")
-          case .NotDetermined:
-            print("NotDetermined")
-          case .Restricted:
-            print("Restricted")
-          default:
-            print("Authorized")
-            manager.requestLocation()
-        }
-  }
+
   
 }
 
